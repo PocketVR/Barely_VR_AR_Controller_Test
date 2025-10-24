@@ -1,0 +1,40 @@
+<!doctype html> <html lang="en-us">
+
+<!--
+    Copyright 2023 The Nodepp Project Authors. All Rights Reserved.
+
+    Licensed under the MIT (the "License").  You may not use
+    this file except in compliance with the License.  You can obtain a copy
+    in the file LICENSE in the source distribution or at
+    https://github.com/NodeppOficial/nodepp/blob/main/LICENSE
+-->
+
+<head>
+
+    <meta charset="utf-8"> <title> Emscripten-Generated Code </title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="assets/uikit.css">
+
+    <script src="/assets/artoolkit.min.js"></script>
+    <script src="/assets/arcontroller.js" ></script>
+    <script src="/assets/engine.js"       ></script>
+
+</head>
+
+<body class="uk-background-dark">
+
+    <button class="uk-icon uk-button uk-position-fixed uk-position-bottom-right"
+            icon="arrows_output" style="z-index:1000;" ></button>
+
+    <video autoplay width="300" height="200" hidden ></video>
+
+    <canvas class="emscripten uk-width-expand uk-height-expand"
+            style="filter: blur(0.3px) contrast(1.3);"
+            oncontextmenu="event.preventDefault()"
+            id="canvas" tabindex=-1></canvas>
+
+    <script async type="text/javascript" src="index.js"></script>
+
+ </body>
+
+</html>
