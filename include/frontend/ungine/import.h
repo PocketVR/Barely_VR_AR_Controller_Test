@@ -18,6 +18,7 @@
 #include <nodepp/object.h>
 #include <nodepp/event.h>
 #include <nodepp/timer.h>
+#include <nodepp/file.h>
 #include <nodepp/path.h>
 #include <nodepp/fs.h>
 

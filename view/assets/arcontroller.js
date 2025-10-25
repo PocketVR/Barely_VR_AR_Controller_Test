@@ -32,11 +32,6 @@ function start_ar_controller() {
                 arController.onload = ()=>{ ar_setup( arController, video ); }
         }).catch((err)=>{
             console.log( err );
-        /*
-            var video        = document.getElementById('video'); video.play();
-            var arController = new ARController( video, "/assets/camera_para.dat" );
-                arController.onload = ()=>{ ar_setup( arController, video ); }
-        */
             alert( "error while stating camera " );
         });
 

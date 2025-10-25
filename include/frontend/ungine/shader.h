@@ -18,11 +18,11 @@
 #define GPU_KERNEL(...) #__VA_ARGS__
 
 #if defined(GRAPHICS_API_OPENGL_33)
-    #define GLSL_VERSION "#version 330\n"
+    #define GLSL_VERSION "#version 100\nprecision mediump float;\n" // #version 330
 #elif defined(GRAPHICS_API_OPENGL_21)
     #define GLSL_VERSION "#version 120\n"
 #else
-    #define GLSL_VERSION "#version 100\nprecision highp float;\n"
+    #define GLSL_VERSION "#version 100\nprecision mediump float;\n"
 #endif
 
 #endif
@@ -117,7 +117,7 @@ protected:
         case 0x33: set_variable( x.first, gpu::UNIFORM_UVEC4, x.second.value.as<uvec4_t>()); break;
         case 0x34: set_variable( x.first, gpu::UNIFORM_VEC4 , x.second.value.as< vec4_t>()); break;
 
-        case 0x50: set_matrix  ( x.first, x.second.value.as<mat_t>() ); /*----------------*/ break;
+        case 0x50: set_matrix  ( x.first, x.second.value.as<mat_t>    () ); /*------------*/ break;
         case 0x51: set_texture ( x.first, x.second.value.as<texture_t>() ); /*------------*/ break;
         default  : throw except_t( "invalid uniform variable" ); /*-----------------------*/ break; 
 
@@ -148,12 +148,15 @@ protected:
         return regex::format( "${0}\n${1}", GLSL_VERSION, obj->vs );
     }
 
-    void compile_shader() /*const noexcept*/ {
+    void compile_shader() const /*noexcept*/ {
         if(!obj->ctx.null() ){ rl::UnloadShader( *obj->ctx ); }
 
+        auto fs = format_framge_shader();
+        auto vs = format_vertex_shader();
+
         obj->ctx = type::bind( rl::LoadShaderFromMemory( 
-            format_framge_shader().get(),
-            format_vertex_shader().get()
+            vs.empty() ? 0 : vs.get(),
+            fs.empty() ? 0 : fs.get()
         ));
         
         if( !is_valid() ){ throw except_t("Invalid Shader"); }
@@ -165,6 +168,8 @@ public:
     virtual ~shader_t() { if( obj.count()>1 ){ return; } free(); }
 
     /*─······································································─*/
+
+    void set_fragment_shader( file_t file ) const noexcept { obj->vs=stream::await(file); }
 
     void set_fragment_shader( string_t code ) const noexcept { obj->fs=code; }
 
@@ -178,6 +183,8 @@ public:
     }
 
     /*─······································································─*/
+
+    void set_vertex_shader( file_t file ) const noexcept { obj->vs=stream::await(file); }
 
     void set_vertex_shader( string_t code ) const noexcept { obj->vs=code; }
 
@@ -200,7 +207,7 @@ public:
 
     /*─······································································─*/
 
-    void emit( function_t<void> cb ) /*const noexcept*/ {
+    void emit( function_t<void> cb ) const /*noexcept*/ {
 
         if( obj->ctx.null() ){ compile_shader(); }
 

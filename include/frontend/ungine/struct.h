@@ -321,7 +321,7 @@ namespace ungine {
 /*────────────────────────────────────────────────────────────────────────────*/
 
 namespace ungine { struct camera_3D_t {
-    float  fovy, far=0.1f, near= 200.f;
+    float  fovy, far=500.f, near=0.1f;
     vec3_t position, target, up;
     int    projection;
 }; }

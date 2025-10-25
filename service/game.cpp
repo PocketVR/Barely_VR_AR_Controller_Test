@@ -24,9 +24,11 @@ void marker ( const int& id, const EM_VAL& data ){
         data[3].as<float>(), data[7].as<float>(), data[11].as<float>(), data[15].as<float>()
     });
 
-    marker_list["0"] = object_t({ // string::to_string(id)
-        { "visible", true   },
-        { "data"   , matrix }
+    marker_list[string::to_string(id)] = object_t({
+        { "timestmp" , process::now() + TIME_SECONDS(1) },
+        { "transform", ungine::transform_3D_t() },
+        { "visible"  , true   },
+        { "data"     , matrix }
     });
 
 }
@@ -67,7 +69,7 @@ namespace ungine { void run() {
 
             self->onLoop([=]( float delta ){
 
-                auto mot      = get_sensor_data();
+                auto mot /**/ = get_sensor_data();
                 auto rot /**/ = math::quaternion::multiply(
                     math::quaternion::from_axis({ { 1, 0 , 0 }, PI/2 }), 
                     vec4_t({ mot.y, mot.x,-mot.z, mot.w })
@@ -80,26 +82,43 @@ namespace ungine { void run() {
             self->append_child( node::node_3D([=]( ref_t<node_t> self ){
 
                 auto pos = self->get_attribute<transform_3D_t>( "transform" );
-                auto obj = model_t( "./controller/assets/obj.glb" );
+                auto obj = model_t( "./controller/assets/glove.glb" );
 
                 self->onLoop([=]( float ){
                     for( auto x: marker_list.keys() ){ auto y = marker_list[x];
                     if ( !y["visible"].as<bool>  () ){ continue; }
 
-                        auto mat = y["data"].as<mat_t>();
+                        auto trn = y["transform"].as<transform_3D_t>();
+                        auto mat = y["data"]/*-*/.as<mat_t>();
 
-                        pos->scale    = vec3_t({ 1, 1, 1 });
+                        trn.scale    = vec3_t({ 1, 1, 1 });
 
-                        pos->rotation = math::matrix::to_euler( mat )
-                                      * vec3_t({ -1, -1, 1 });
+                        trn.rotation = math::matrix::to_euler( mat )
+                                     * vec3_t({ -1, -1, 1 });
 
-                        pos->position = vec3_t({-mat.m12,-mat.m13, mat.m14 })
-                                      * vec3_t({ 1.2, 1.2, 0.8 });
+                        trn.position = vec3_t({ mat.m12, mat.m13, mat.m14 })
+                                     * vec3_t({ -1.5, -1.5, 0.8 });
 
-                    y["visible"] = false; }
+                        trn.translate.position = math::vec3      ::rotation  ( trn.position, 
+                        /*--------------------*/ math::quaternion::from_euler( pos->translate.rotation )) 
+                        /*------------------*/ + pos->translate.position;
+
+                        trn.translate.rotation = math::quaternion::to_euler  ( math::quaternion::multiply(
+                        /*--------------------*/ math::quaternion::from_euler( pos->translate.rotation ) 
+                        /*------------------*/ , math::quaternion::from_euler( trn.rotation )));
+
+                        trn.translate.scale    = trn.scale; y["transform"] = trn;
+
+                    if ( y["timestmp"].as<ulong>() < process::now() )
+                       { y["visible"] = false; }}
                 });
 
-                self->on3DDraw([=](){ obj.draw( *pos ); });
+                self->on3DDraw([=](){ 
+                    for( auto x: marker_list.keys() ){ auto y = marker_list[x];
+                    if ( !y["visible"].as<bool>  () ){ continue; }
+                          obj.draw( y["transform"].as<transform_3D_t>() );
+                    } 
+                });
 
             }) );
 
